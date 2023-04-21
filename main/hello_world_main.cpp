@@ -31,11 +31,11 @@ class Rectangle {
 
 
 
-//#ifdef PRINT_DEBUG
+#ifdef PRINT_DEBUG
 #include "esp_log.h"
 const char *TAG = "Pwm_example";
 uint16_t dat=0;
-//#endif
+#endif
 
 
 //SETTINGS FOR PWM DEFINITIONS:
@@ -95,24 +95,20 @@ extern "C" void pwm(void *)
         for (uint8_t channel = 0 ; channel < pwm_channels_number; channel++)
         {
             duties[channel] = (duties[channel] < PWM_PERIOD) ? (duties[channel] + 10) : (duties[channel] % PWM_PERIOD);
-            //#ifdef PRINT_DEBUG
-            if (! (duties[0] % 100))
+            #ifdef PRINT_DEBUG
                 ESP_LOGI(TAG, "%s PWM Ongoing with duties[%d] = %d!!!", __func__, channel,duties[channel]);
-            //#endif
+            #endif
         }
 
         pwm_stop(0x0f);
         pwm_set_duties(duties);
         pwm_start();
         
-        //#ifdef PRINT_DEBUG
-        if (! (duties[0] % 100))
-        {
+        #ifdef PRINT_DEBUG
             dat = uxTaskGetStackHighWaterMark(NULL);
             ESP_LOGI(TAG,"%s stack left: %d", __func__,dat);
 
-        }
-        //#endif
+        #endif
     }
 }
 
@@ -139,12 +135,14 @@ extern "C" void wifi(void *)
     esp_wifi_connect();
 
     while (1)
-    {
-        //#ifdef PRINT_DEBUG
-        vTaskDelay(1000 / portTICK_RATE_MS);
-        dat = uxTaskGetStackHighWaterMark(NULL);
-        ESP_LOGI(TAG,"%s stack left: %d", __func__,dat);
-        //#endif
+    {   //For unknown reason whithout this delay tcpip_adapter is unable to obtain IP 
+        // In result of that wdt reset occures after timeout
+        vTaskDelay(100 / portTICK_RATE_MS);
+
+        #ifdef PRINT_DEBUG
+            dat = uxTaskGetStackHighWaterMark(NULL);
+            ESP_LOGI(TAG,"%s stack left: %d", __func__,dat);
+        #endif
     }
 }
 
